@@ -78,7 +78,8 @@
     "browserify": "^7.0.1",
     "jshint": "^2.5.10",
     "mocha": "^2.0.1",
-    "traceur": "0.0.79"
+    "traceur": "0.0.79",
+    "uglify-js": "^2.4.16"
   },
   "engines": {
     "npm": ">=2.0"

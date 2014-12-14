@@ -1,10 +1,10 @@
 TRACEUR = node_modules/traceur/traceur
+BROWSERIFY = node_modules/browserify/bin/cmd.js
+UGLIFY = node_modules/uglify-js/bin/uglifyjs
 JSHINT = node_modules/jshint/bin/jshint
 MOCHA = node_modules/mocha/bin/mocha
 YAML = node_modules/js-yaml/bin/js-yaml.js
 
-BROWSERIFY = node_modules/browserify/bin/cmd.js
-UGLIFY = node_modules/uglify-js/bin/uglifyjs
 DEVELOP = develop
 SASSDOC = bin/sassdoc
 SAMPLE = node_modules/sassdoc-theme-default/scss
@@ -12,9 +12,11 @@ SAMPLE = node_modules/sassdoc-theme-default/scss
 all: dist lint test
 
 # Publish package to npm
-# @see npm/npm#3059
-# =======================
+# ======================
 
+#
+# See npm/npm#3059.
+#
 publish: all
 	npm publish --tag beta
 
@@ -24,6 +26,45 @@ publish: all
 dist: runtime force
 	rm -rf $@
 	$(TRACEUR) --modules=commonjs --dir src dist
+
+# Compile for web
+# ===============
+
+dist-web: dist-web/sassdoc.min.js
+
+dist-web/sassdoc.min.js: dist-web/sassdoc.js
+	$(UGLIFY) $< -o $@
+
+#
+# Files/modules to ignore for web distribution.
+#
+BROWSERIFY_FLAGS += -i ./dist/notifier.js
+BROWSERIFY_FLAGS += -i ./dist/exclude.js
+BROWSERIFY_FLAGS += -i ./dist/cli.js
+BROWSERIFY_FLAGS += -i ./dist/recurse.js
+BROWSERIFY_FLAGS += -i vinyl-fs
+BROWSERIFY_FLAGS += -i glob2base
+BROWSERIFY_FLAGS += -i docopt
+BROWSERIFY_FLAGS += -i glob
+BROWSERIFY_FLAGS += -i js-yaml
+BROWSERIFY_FLAGS += -i minimatch
+BROWSERIFY_FLAGS += -i mkdirp
+BROWSERIFY_FLAGS += -i multipipe
+BROWSERIFY_FLAGS += -i rimraf
+BROWSERIFY_FLAGS += -i safe-wipe
+BROWSERIFY_FLAGS += -i sass-convert
+BROWSERIFY_FLAGS += -i sassdoc-theme-default
+BROWSERIFY_FLAGS += -i update-notifier
+BROWSERIFY_FLAGS += -i through2
+
+#
+# Require all annotations.
+#
+BROWSERIFY_FLAGS += $(addprefix -r ,$(shell find ./dist/annotation/annotations -type f))
+
+dist-web/sassdoc.js: dist force
+	mkdir -p $(@D)
+	$(BROWSERIFY) index-web.js -o $@ $(BROWSERIFY_FLAGS)
 
 # Copy Traceur runtime locally
 # ============================
@@ -45,13 +86,6 @@ test: force dist
 
 .jshintrc: .jshintrc.yaml
 	$(YAML) $< > $@
-
-# Compile for web
-# ===============
-dist-web: dist test force
-	mkdir -p dist-web
-	$(BROWSERIFY) index-web.js -o dist-web/sassdoc.js -i ./dist/notifier.js -i ./dist/notifier.js -i ./dist/exclude.js -i ./dist/cli.js -i ./dist/recurse.js -i vinyl-fs -i glob2base -i docopt -i glob -i glob2base -i js-yaml -i minimatch -i mkdirp -i multipipe -i rimraf -i safe-wipe -i sass-convert -i sassdoc-theme-default -i update-notifier -i multipipe -i through2 -r ./dist/annotation/annotations/access.js -r ./dist/annotation/annotations/alias.js -r ./dist/annotation/annotations/author.js -r ./dist/annotation/annotations/content.js -r ./dist/annotation/annotations/deprecated.js -r ./dist/annotation/annotations/example.js -r ./dist/annotation/annotations/group.js -r ./dist/annotation/annotations/ignore.js -r ./dist/annotation/annotations/link.js -r ./dist/annotation/annotations/output.js -r ./dist/annotation/annotations/parameter.js -r ./dist/annotation/annotations/property.js -r ./dist/annotation/annotations/require.js -r ./dist/annotation/annotations/return.js -r ./dist/annotation/annotations/see.js -r ./dist/annotation/annotations/since.js -r ./dist/annotation/annotations/throw.js -r ./dist/annotation/annotations/todo.js -r ./dist/annotation/annotations/type.js
-	$(UGLIFY) dist-web/sassdoc.js -o dist-web/sassdoc.min.js
 
 # Compile sample input in `develop`
 # =================================
