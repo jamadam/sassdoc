@@ -1,7 +1,7 @@
 /node_modules
 /develop
 /dist
-/web-dist
+/dist-web
 /bin/traceur-runtime.js
 .DS_Store
 npm-debug.log
