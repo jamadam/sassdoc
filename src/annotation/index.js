@@ -1,5 +1,26 @@
-let fs = require('fs');
 let path = require('path');
+
+let annotationNames = [
+  'access',
+  'alias',
+  'author',
+  'content',
+  'deprecated',
+  'example',
+  'group',
+  'ignore',
+  'link',
+  'output',
+  'parameter',
+  'property',
+  'require',
+  'return',
+  'see',
+  'since',
+  'throw',
+  'todo',
+  'type'
+];
 
 export default class AnnotationsApi {
   constructor(config) {
@@ -10,14 +31,8 @@ export default class AnnotationsApi {
     };
 
     // Read all files from the annoation folder and add it to the annotations map.
-    fs.readdirSync(path.resolve(__dirname, './annotations')).forEach(file => {
-      if (!file.endsWith('.js')) {
-        return;
-      }
-
-      var annotation = require(path.resolve(__dirname, 'annotations', file)).default;
-      var name = path.basename(file, '.js');
-
+    annotationNames.forEach(name => {
+      var annotation = require(path.resolve(__dirname, 'annotations', name+'.js')).default;
       this.addAnnotation(name, annotation);
     });
   }
